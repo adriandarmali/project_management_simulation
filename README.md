@@ -1,78 +1,84 @@
 # 📊 Project Simulator
 
-A web-based project timeline simulator built with Streamlit. Define project activities, model uncertainty using three-point estimation, visualize dependencies, and run Monte Carlo simulations to estimate completion probability.
+A web-based project timeline simulator built with Streamlit. Define project activities, model uncertainty with three-point estimation, visualize dependencies, and run Monte Carlo simulations to estimate completion probability and schedule risk.
+
+🔗 **[Live App](https://your-app-name.streamlit.app)** *(replace with your Streamlit Cloud URL)*
 
 ---
 
 ## Features
 
-- **Activity builder** — add, edit, delete, and reorder project activities manually
+- **Activity manager** — add, edit, delete, and reorder activities in a persistent sidebar
 - **CSV bulk import** — upload activities from a spreadsheet with template download
-- **Dependency validation** — catches circular dependencies, missing start/end nodes, self-references, disconnected graphs, and invalid inputs before simulation
-- **Network diagram** — auto-generated visual of the activity dependency graph
-- **Monte Carlo simulation** — samples durations across thousands of iterations using PERT Beta or Triangular distributions
-- **Results dashboard** — expected finish time, standard deviation, confidence intervals (P50–P95), and bottleneck analysis
+- **Full validation** — catches circular dependencies, missing start/end nodes, self-references, disconnected graphs, duplicate labels, invalid characters, and illogical durations
+- **Network diagram** — auto-generated dependency graph with critical path highlighted in red
+- **5 distribution types** — Uniform, PERT Beta, Triangular, Normal, Log-normal
+- **Monte Carlo simulation** — up to 50,000 iterations with live progress bar
+- **5 result tabs** — Summary, Critical Path, Gantt Chart, Risk Analysis, Bottleneck
 
 ---
 
-## Live App
-
-▶ **[Launch on Streamlit Cloud](https://your-app-name.streamlit.app)**
-*(Replace this link with your actual Streamlit Cloud URL after deploying)*
-
----
-
-## Local Installation
-
-**Requirements:** Python 3.8+
+## Installation (Local)
 
 ```bash
 pip install streamlit numpy pandas plotly scipy
 streamlit run app.py
 ```
 
-Opens at `http://localhost:8501` in your browser.
+Opens at `http://localhost:8501`.
 
 ---
 
 ## Deploy to Streamlit Cloud
 
-1. Push this repository to GitHub
+1. Push this repo to GitHub
 2. Go to [share.streamlit.io](https://share.streamlit.io)
 3. Connect your GitHub account
-4. Select this repo, set `app.py` as the main file
-5. Click **Deploy** — no configuration needed
+4. Select the repo, set `app.py` as the main file
+5. Click **Deploy** — no extra configuration needed
 
 ---
 
 ## How to Use
 
-### Step 1 — Project Setup
+### Layout
 
-Add each activity in your project:
+| Area | Purpose |
+|---|---|
+| **Sidebar (left 1/3)** | Add and manage activities |
+| **Main canvas (right 2/3)** | Network diagram, simulation controls, results |
+| **Main toolbar** | Load example, import/export CSV, clear all |
+
+---
+
+### Step 1 — Add Activities (Sidebar)
+
+Click **+ Add Activity** and fill in:
 
 | Field | Description |
 |---|---|
-| Activity Name | Full name of the task |
-| Label | Short unique identifier (e.g. A, B, T1) |
+| Name | Full name of the task |
+| Label | Short unique ID, letters and numbers only (e.g. A, B, T1) |
 | Predecessors | Activities that must finish before this one starts |
 | Minimum | Best-case duration |
 | Most Likely | Expected duration under normal conditions |
 | Maximum | Worst-case duration |
 
-Use **↑ ↓** buttons to reorder activities. Click **Edit** to modify any row inline. Deleting an activity automatically removes it from all predecessor lists.
+Use **↑ ↓** to reorder. Click **Edit** to modify a row inline. Deleting an activity automatically removes it from all predecessor lists.
 
-Click **Load Example Project** to pre-load a 7-activity Computer Design project for reference.
+Validation runs live — errors appear in the sidebar next to the relevant activity.
 
 ---
 
-### Step 1b — CSV Import (Optional)
+### Step 2 — Import via CSV (Optional)
 
-1. Click **Download CSV Template** to get a pre-filled example file
-2. Edit the file in Excel, Google Sheets, or any text editor
-3. Upload it via the **Upload CSV** section
+Click **📂 Import / Export CSV** on the main canvas toolbar.
+
+1. Download the template
+2. Fill it in Excel, Google Sheets, or any text editor
+3. Upload the file
 4. Review the row-by-row validation preview
-5. Choose **Append** (add to existing) or **Replace** (clear and import)
+5. Choose **Append** (add alongside existing) or **Replace** (clear and import)
 6. Click **Import**
 
 **CSV format:**
@@ -88,75 +94,91 @@ Write Methods Report,F,"C,D",6,8,10
 Write Final Report,G,"E,F",1,2,3
 ```
 
-- `predecessors` column accepts comma-separated labels (e.g. `"C,D"`), leave blank for start activities
-- Import is all-or-nothing — no activities are added if any row contains an error
+- `predecessors` accepts comma-separated labels in quotes (e.g. `"C,D"`), leave blank for start activities
+- Import is all-or-nothing — no activities are added if any row has an error
 
 ---
 
-### Step 2 — Network Diagram
+### Step 3 — Review the Network Diagram
 
-Displays the activity dependency graph. Hover over any node to see:
-- Duration range (min / most likely / max)
-- PERT expected duration (te)
-- Variance
-- Predecessor list
+The diagram auto-updates whenever activities change.
 
-Also shows a summary table with computed te and variance for every activity.
-
-**PERT expected duration formula:**
-```
-te = (min + 4 × most_likely + max) / 6
-```
-
-**Variance formula:**
-```
-variance = ((max − min) / 6)²
-```
+- **Red nodes and edges** = deterministic critical path (using PERT te values)
+- **Dark nodes** = non-critical activities
+- Hover over any node to see: duration range, expected duration (te), variance, predecessor list
 
 ---
 
-### Step 3 — Monte Carlo Simulation
+### Step 4 — Run the Simulation
 
-**Settings:**
+**Distribution options:**
 
-| Setting | Options | Default |
-|---|---|---|
-| Iterations | 500 / 1,000 / 5,000 / 10,000 / 25,000 / 50,000 | 10,000 |
-| Distribution | PERT Beta, Triangular | PERT Beta |
+| Distribution | When to use |
+|---|---|
+| **Uniform** *(default)* | Equal probability across min–max range. Conservative and assumption-free. |
+| **PERT Beta** | Weights most likely estimate 4× more than extremes. Best for project estimation. |
+| **Triangular** | Equal weight on min, likely, max. Simple but less precise than PERT. |
+| **Normal** | Symmetric bell curve centred on most likely. Use when data supports symmetry. |
+| **Log-normal** | Right-skewed — models tasks that occasionally run very long. |
 
-**PERT Beta** — weights the most likely estimate four times more than the extremes. More accurate for project estimation.
+**Iteration options:** 500 / 1,000 / 5,000 / 10,000 / 25,000 / 50,000 (default: 10,000)
 
-**Triangular** — treats all three points equally. Simpler but less statistically rigorous.
+Click **▶ Run Simulation**.
 
-**Results:**
+---
 
-- **Expected Finish** — mean completion time across all simulations
-- **Std. Deviation** — spread of uncertainty
-- **Minimum / Maximum** — observed range across all runs
-- **Confidence intervals** — P50 through P95: the time by which X% of simulations completed
-- **Bottleneck analysis** — which activity was last to finish most often across all runs
+### Step 5 — Read the Results
+
+Results appear in five tabs after the simulation completes.
+
+#### 📈 Summary
+- **P90** shown as the dominant headline stat — the deadline with 90% confidence
+- Expected finish, standard deviation, observed range
+- Histogram of all simulated finish times with mean, P50, P90 reference lines
+- S-curve showing cumulative completion probability across time
+- Confidence table: P50 through P95
+
+#### 🔗 Critical Path
+- Critical path sequence highlighted with red badges
+- Total critical path duration using PERT te values
+- Float analysis table for every activity — shows how much each can slip before delaying the project
+- Float bar chart: red = zero float (critical), teal = has slack
+
+#### 📅 Gantt Chart
+- Horizontal bar chart of expected activity timeline using PERT te
+- Based on earliest start / earliest finish from forward pass
+- Red bars = critical path, teal bars = non-critical
+- Hover for start, finish, and duration details
+
+#### ⚠ Risk Analysis
+- **Tornado chart** — Spearman correlation between each activity's duration and the overall finish time. Activities closest to 1.0 have the most leverage on the schedule.
+- **Risk register** — per-activity table showing: duration spread, sensitivity, probability of exceeding most likely, estimated impact, risk score (probability × impact), and risk level (High / Medium / Low)
+- **Schedule buffer recommendation** — how much buffer to add to P50 to reach P90 confidence, expressed in both units and as a percentage
+
+#### 🔍 Bottleneck
+- Bar chart of how often each activity was the last to finish across all simulation runs
+- Side-by-side comparison of deterministic critical path vs simulation bottlenecks
+- Warning shown when they diverge — indicates latent schedule risks not visible in the PERT analysis
 
 ---
 
 ## Validation Rules
 
-The app blocks progression if any of the following are detected:
-
+**Blocks simulation:**
 - No activities added
 - Duplicate labels
-- Invalid label characters (only letters and numbers allowed)
+- Invalid label characters (letters and numbers only)
 - Self-referencing predecessor
 - Unknown predecessor reference
 - No start node (every activity has a predecessor)
 - No end node (every activity has a successor)
 - Circular dependency
-- Duration values where min > most likely or most likely > max
+- Duration where min > most likely or most likely > max
 
-Warnings (non-blocking) are shown for:
-
+**Advisory warnings (non-blocking):**
 - All durations set to zero
 - Degenerate distribution (min = most likely = max)
-- Unusually large duration values
+- Unusually large duration values (> 5,200 units)
 - Disconnected graph
 - Duplicate activity names
 
@@ -186,8 +208,22 @@ scipy
 
 ## Method Reference
 
-This tool implements **PERT (Program Evaluation and Review Technique)** three-point estimation combined with **Monte Carlo simulation**.
+**PERT (Program Evaluation and Review Technique)** — developed by the US Navy in the 1950s for the Polaris missile program. Accounts for duration uncertainty using three estimates: minimum, most likely, and maximum.
 
-PERT was developed by the US Navy in the 1950s for the Polaris missile program. It accounts for uncertainty in task duration by requiring three estimates rather than one, and has been widely adopted in project management ever since.
+**PERT expected duration formula:**
+```
+te = (min + 4 × most_likely + max) / 6
+```
 
-Monte Carlo simulation repeatedly samples random durations from each activity's distribution and computes the resulting project finish time. Aggregating thousands of runs produces a probability distribution over possible completion dates, which is more informative than a single deterministic estimate.
+**Variance formula:**
+```
+variance = ((max − min) / 6)²
+```
+
+**Monte Carlo simulation** — repeatedly samples random durations from each activity's chosen distribution, runs a forward pass to compute project finish time, and aggregates thousands of results into a probability distribution. More informative than a single deterministic estimate because it explicitly models uncertainty.
+
+**Critical path** — the sequence of activities with zero total float. Any delay on the critical path directly delays the project end date.
+
+**Total float** — how long an activity can be delayed without delaying the project end date.
+
+**Sensitivity (Tornado chart)** — Spearman rank correlation between each activity's sampled duration and the project finish time across all simulation runs. Identifies which activities have the most influence on schedule outcomes.
