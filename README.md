@@ -2,7 +2,7 @@
 
 A web-based project timeline simulator built with Streamlit. Define project activities, model uncertainty with three-point estimation, visualize dependencies, and run Monte Carlo simulations to estimate completion probability and schedule risk.
 
-🔗 **[Live App]([https://your-app-name.streamlit.app](https://projectmanagementking.streamlit.app/))** *(replace with your Streamlit Cloud URL)*
+🔗 **https://projectmanagementking.streamlit.app/**
 
 ---
 
